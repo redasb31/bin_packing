@@ -39,3 +39,5 @@ class Item(object):
 
     def __eq__(self, other):
         return self.size == other.size
+    def __lt__(self, other):
+        return self.size<other.size

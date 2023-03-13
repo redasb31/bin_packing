@@ -7,6 +7,7 @@ from utils import plot_bins
 
 
 def dynamic_branch_and_bound(items, best_solution,initialcapacity):
+    items.sort()
     stack = [(items,[])]
     visited=[]
     while(len(stack)>0):
@@ -37,7 +38,8 @@ def dynamic_branch_and_bound(items, best_solution,initialcapacity):
                 if bin.capacity>=item.size:
                     new_bins = bins.copy()
                     new_bins.remove(bin)
-                    new_bin = Bin(bin.capacity)
+                    new_bin = Bin(bin.initialcapacity)
+                    new_bin.capacity=bin.capacity
                     new_bin.items = bin.items.copy()
                     new_bin.add_item(item)
                     new_bins.append(new_bin)
@@ -75,7 +77,8 @@ def stack_branch_and_bound(items, best_solution,initialcapacity):
                 if bin.capacity>=item.size:
                     new_bins = bins.copy()
                     new_bins.remove(bin)
-                    new_bin = Bin(bin.capacity)
+                    new_bin = Bin(bin.initialcapacity)
+                    new_bin.capacity=bin.capacity
                     new_bin.items = bin.items.copy()
                     new_bin.add_item(item)
                     new_bins.append(new_bin)
@@ -85,7 +88,11 @@ def stack_branch_and_bound(items, best_solution,initialcapacity):
     return best_solution
 
 def state_hash(items,bins):
-    return hex(len(items))[2:]+''.join([hex(bin.capacity)[2:] for bin in set(bins)])
+    set_bins=set(bins)
+    s=hex(len(items))[2:]
+    for bin in set_bins:
+        s=s+hex(bin.capacity)[2:]
+    return s
 
 def branch_and_bound(items, bins, best_solution):
     if len(items) == 0:
@@ -99,7 +106,8 @@ def branch_and_bound(items, bins, best_solution):
         if bin.capacity >= items[0].size:
             new_bins = bins.copy()
             new_bins.remove(bin)
-            new_bin = Bin(bin.capacity)
+            new_bin = Bin(bin.initialcapacity)
+            new_bin.capacity=bin.capacity
             new_bin.items = bin.items.copy()
             new_bin.add_item(items[0])
             new_bins.append(new_bin)
@@ -124,8 +132,10 @@ def print_result(items,bins):
         bin.print_items()
 
 def first_fit(items,initialcapacity):
+    new_items=items.copy()
+    new_items.sort()
     bins = []
-    for item in items:
+    for item in new_items:
         for bin in bins:
             if bin.capacity >= item.size:
                 bin.add_item(item)
@@ -144,30 +154,30 @@ def genereate_items(maxsize,number):
 
 if __name__ == "__main__":
     # instantiate items with random size
-    items=genereate_items(10, 15)
+    items=genereate_items(6, 14)
     # bin packing algorithm
+    tff=time.time()
     bins = first_fit(items, 10)
+    tff=time.time()-tff
     # print results
 
     t1=time.time()
     bins1=stack_branch_and_bound(items, bins,10)
     t1=-(t1-time.time())
-    # t2=time.time()
-    # bins2=branch_and_bound(items, [], bins)
-    # t2=-(t2-time.time())
+    t2=time.time()
+    bins2=branch_and_bound(items, [], bins)
+    t2=-(t2-time.time())
     t3=time.time()
     bins3=dynamic_branch_and_bound(items, bins,10)
     t3=-(t3-time.time())
 
 
     print(f"Execution time: {t1} seconds")
-    # print(f"Execution time: {t2} seconds")
+    print(f"Execution time: {t2} seconds")
     print(f"Execution time: {t3} seconds")
-    print_result(items, bins1)
-    print_result(items, bins3)
-
-    # plot_bins(bins1)
-    # plot_bins(bins2)
+    print(len(bins1))
+    print(len(bins3))
+    plot_bins((bins,bins1,bins2,bins3),(tff,t1,t2,t3),('First Fit','BNB avec Pile','BNB Récursive','BNB Dynamique'))
 
 
 
