@@ -29,16 +29,18 @@ def plot_bins(bins):
     fig, ax = plt.subplots()
     for i in range(len(bins)):
         # shuffles the colors
+        k=0
         random.shuffle(colors)
-        ax.bar(i, initialcapacity, width=0.95,bottom=0, color='gray')
+        ax.bar(i, initialcapacity, width=0.9,bottom=0, color='lightgray',edgecolor='black')
         for j in range(len(bin_contents[i])):
-            ax.bar(i, bin_contents[i][j], width=0.9,bottom=positions[i][j] + 0.1, color=colors[j%len(colors)])
+            ax.bar(i, bins[i].items[j].size, width=0.9,bottom=k, color=colors[j%len(colors)],edgecolor='black')
+            k=k+bins[i].items[j].size
 
     # Set the x-axis tick labels to the bin labels
     plt.xticks(range(len(bins)), bin_labels)
 
     # Set the y-axis limits based on the maximum size of the items in all the bins
-    ax.set_ylim(0, initialcapacity)
+    ax.set_ylim(0, initialcapacity+0.4)
 
     # Label the x-axis and y-axis
     plt.xlabel('Bins')
