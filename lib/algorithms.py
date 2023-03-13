@@ -1,5 +1,5 @@
-from utils import state_hash
-from classes import Bin, Item
+from lib.utils import state_hash
+from lib.classes import Bin, Item
 
 def dynamic_branch_and_bound(items, best_solution,initial_capacity):
     items.sort()

@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import random
-from classes import Bin, Item
+from lib.classes import Bin, Item
 
 def plot_bins(list_bins,t,titles):
     initial_capacity=list_bins[0][0].initial_capacity

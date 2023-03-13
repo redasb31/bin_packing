@@ -2,9 +2,9 @@ import random
 import matplotlib as plt
 import time
 import itertools
-from classes import Bin, Item
-from utils import plot_bins, genereate_items
-from algorithms import first_fit, recursive_branch_and_bound, stack_branch_and_bound, dynamic_branch_and_bound
+from lib.classes import Bin, Item
+from lib.utils import plot_bins, genereate_items
+from lib.algorithms import first_fit, recursive_branch_and_bound, stack_branch_and_bound, dynamic_branch_and_bound
 import argparse
 
 if __name__ == "__main__":
