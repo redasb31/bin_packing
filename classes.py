@@ -1,7 +1,7 @@
 
 class Bin(object):
     def __init__(self, capacity):
-        self.initialcapacity=capacity
+        self.initial_capacity=capacity
         self.capacity = capacity
         self.items = []
 
