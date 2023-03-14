@@ -22,8 +22,14 @@ if __name__ == "__main__":
     
     print(f"Generating {nb_items} items with max size = {max_size}, bin capacity = {bin_capacity} .")
     items = genereate_items(nb_items, max_size)
+    
+    
+    # a=[1,1,2,2,2,3,3,4,5,6,6,7,9,9,10]
+    # for d in a:
+    #     items.append(Item(d))
 
     # first fit
+
     t0 = time.time()
     bins = first_fit(items, bin_capacity)
     t0 = round(time.time()-t0, 6)
@@ -34,9 +40,9 @@ if __name__ == "__main__":
     t1 = round(time.time() - t1, 6)
 
     # recursive branch and bound
-    t2 = time.time()
-    bins2 = recursive_branch_and_bound(items, [], bins)
-    t2 = round(time.time() - t2, 6)
+    # t2 = time.time()
+    # bins2 = recursive_branch_and_bound(items, [], bins)
+    # t2 = round(time.time() - t2, 6)
 
     # branch and bound with stack using dynamic programming
     t3 = time.time()
@@ -45,9 +51,9 @@ if __name__ == "__main__":
 
     # Plotting results
     plot_bins(
-        [bins, bins1, bins2, bins3],
-        [t0, t1, t2, t3],
-        ['First Fit', 'BNB avec Pile', 'BNB Récursive', 'BNB Dynamique']
+        [bins, bins1, bins3],
+        [t0, t1, t3],
+        ['First Fit', 'BNB avec Pile', 'BNB Dynamique']
         )
 
 

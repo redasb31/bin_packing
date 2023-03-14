@@ -1,20 +1,34 @@
 import matplotlib.pyplot as plt
+import matplotlib.pylab as pl
+import matplotlib.gridspec as gridspec
+
 import random
 from lib.classes import Bin, Item
 
 def plot_bins(list_bins,t,titles):
+    
+    gs = gridspec.GridSpec(2, 4)
+
+    fig = pl.figure(figsize=(14,14))
+    ax1 = pl.subplot(gs[0, 0:2]) # row 0, col 0
+
+    ax2 = pl.subplot(gs[0, 2:4]) # row 0, col 1
+
+    ax3 = pl.subplot(gs[1, 1:3]) # row 1, span all columns
+
+
+
     initial_capacity=list_bins[0][0].initial_capacity
-    fig, ax = plt.subplots((1+len(list_bins))//2,2,figsize=(14,14))
     
     ind=0
-    axes=[]
+    axes=[ax1,ax2,ax3]
 
-    for a in ax:
-        if len(a)>1:
-            for b in a:
-                axes.append(b)
-        else:
-            axes.append(a)
+    # for a in ax:
+    #     if False:
+    #         for b in a:
+    #             axes.append(b)
+    #     else:
+    #         axes.append(a)
     for bins in list_bins:
         bin_labels = [f'Bin {i+1}' for i in range(len(bins))]
         nb_bins = len(bins)
