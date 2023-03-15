@@ -22,7 +22,7 @@ def dynamic_branch_and_bound(items, best_solution,initial_capacity):
         visited.append(state_hash((items),bins) )
 
         if (len(items)==0):
-            if (len(bins)<len(best_solution)) :
+            if (evaluate(bins)<evaluate(best_solution)) :
                 best_solution=bins
             continue
 
@@ -63,7 +63,7 @@ def stack_branch_and_bound(items, best_solution,initial_capacity):
             continue
 
         if (len(items)==0):
-            if (len(bins)<len(best_solution)) :
+            if (evaluate(bins)<evaluate(best_solution)) :
                 best_solution=bins
             continue
 
