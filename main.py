@@ -20,9 +20,19 @@ if __name__ == "__main__":
     max_size = args.max_size
     bin_capacity = args.bin_capacity
     
-    print(f"Generating {nb_items} items with max size = {max_size}, bin capacity = {bin_capacity} .")
-    items = genereate_items(nb_items, max_size)
+    # print(f"Generating {nb_items} items with max size = {max_size}, bin capacity = {bin_capacity} .")
+    # items = genereate_items(nb_items, max_size)
     
+
+    dataset = open("./BPP_50_50_0.1_0.7_0.txt", "r").read().strip().split("\n")
+    nb_items = 30
+    bin_capacity = int(dataset[1])
+    items = []
+    for i in range(2, nb_items + 2):
+        items.append(Item(int(dataset[i])))
+    print(f"Generating {nb_items} items with max size = {max_size}, bin capacity = {bin_capacity} .")
+
+
     
     # a=[1,1,2,2,2,3,3,4,5,6,6,7,9,9,10]
     # for d in a:
@@ -35,9 +45,9 @@ if __name__ == "__main__":
     t0 = round(time.time()-t0, 6)
 
     # branch and bound with stack
-    t1 = time.time()
-    bins1 = stack_branch_and_bound(items, bins, bin_capacity)
-    t1 = round(time.time() - t1, 6)
+    # t1 = time.time()
+    # bins1 = stack_branch_and_bound(items, bins, bin_capacity)
+    # t1 = round(time.time() - t1, 6)
 
     # recursive branch and bound
     # t2 = time.time()
@@ -51,9 +61,9 @@ if __name__ == "__main__":
 
     # Plotting results
     plot_bins(
-        [bins, bins1, bins3],
-        [t0, t1, t3],
-        ['First Fit', 'BNB avec Pile', 'BNB Dynamique']
+        [ bins3],
+        [t3],
+        [ 'BNB Dynamique']
         )
 
 
