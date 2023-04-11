@@ -16,7 +16,10 @@ def dynamic_branch_and_bound(items, best_solution,initial_capacity):
 
         if evaluate(bins)>=evaluate(best_solution):
             continue
-
+        
+        if (state_hash(items, bins)) in visited:
+            continue
+        visited.append(state_hash((items),bins) )
        
 
         if (len(items)==0):
