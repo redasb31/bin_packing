@@ -4,7 +4,7 @@ import time
 import itertools
 from lib.classes import Bin, Item
 from lib.utils import plot_bins, genereate_items
-from lib.algorithms import first_fit, recursive_branch_and_bound, stack_branch_and_bound, dynamic_branch_and_bound
+from lib.algorithms import first_fit, recursive_branch_and_bound, stack_branch_and_bound, dynamic_branch_and_bound, last_fit, best_fit, worst_fit, next_fit
 import argparse
 
 if __name__ == "__main__":
@@ -25,7 +25,7 @@ if __name__ == "__main__":
     
 
     dataset = open("./BPP_50_50_0.1_0.7_0.txt", "r").read().strip().split("\n")
-    nb_items = 30
+    nb_items = 50
     bin_capacity = int(dataset[1])
     items = []
     for i in range(2, nb_items + 2):
@@ -33,38 +33,27 @@ if __name__ == "__main__":
     print(f"Generating {nb_items} items with max size = {max_size}, bin capacity = {bin_capacity} .")
 
 
-    
-    # a=[1,1,2,2,2,3,3,4,5,6,6,7,9,9,10]
-    # for d in a:
-    #     items.append(Item(d))
+    algorithms = ["first_fit", "last_fit", "best_fit", "worst_fit", "next_fit"]
+    all_bins = []
+    times = []
 
-    # first fit
+    for algo in algorithms:
+        t0 = time.time()
+        bins = eval(algo)(items, bin_capacity)
+        t1 = time.time()
+        times.append(round(t1 - t0, 6))
+        all_bins.append(bins)
+        # print(f"{algo} took {times[-1]} seconds")
+        # print(f"{algo} used {len(bins)} bins")
 
-    t0 = time.time()
-    bins = first_fit(items, bin_capacity)
-    t0 = round(time.time()-t0, 6)
-
-    # branch and bound with stack
-    # t1 = time.time()
-    # bins1 = stack_branch_and_bound(items, bins, bin_capacity)
-    # t1 = round(time.time() - t1, 6)
-
-    # recursive branch and bound
-    # t2 = time.time()
-    # bins2 = recursive_branch_and_bound(items, [], bins)
-    # t2 = round(time.time() - t2, 6)
-
-    # branch and bound with stack using dynamic programming
-    t3 = time.time()
-    bins3 = dynamic_branch_and_bound(items, bins, bin_capacity)
-    t3 = round(time.time()- t3, 6)
 
     # Plotting results
     plot_bins(
-        [ bins3],
-        [t3],
-        [ 'BNB Dynamique']
+        all_bins,
+        times,
+        algorithms
         )
+
 
 
 

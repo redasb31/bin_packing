@@ -7,21 +7,25 @@ from lib.classes import Bin, Item
 
 def plot_bins(list_bins,t,titles):
     
-    gs = gridspec.GridSpec(2, 4)
+    gs = gridspec.GridSpec(3, 5)
 
     fig = pl.figure(figsize=(14,14))
     ax1 = pl.subplot(gs[0, 0:2]) # row 0, col 0
 
     ax2 = pl.subplot(gs[0, 2:4]) # row 0, col 1
 
-    ax3 = pl.subplot(gs[1, 1:3]) # row 1, span all columns
+    ax3 = pl.subplot(gs[1, 0:2]) 
+
+    ax4 = pl.subplot(gs[1, 2:4])
+
+    ax5 = pl.subplot(gs[2, 1:3])
 
 
 
     initial_capacity=list_bins[0][0].initial_capacity
     
     ind=0
-    axes=[ax1,ax2,ax3]
+    axes = [ax1,ax2,ax3,ax4,ax5]
 
     # for a in ax:
     #     if False:
@@ -50,7 +54,7 @@ def plot_bins(list_bins,t,titles):
             for i in range(len(contents)-1):
                 pos.append(pos[-1] + contents[i])
             positions.append(pos)
-
+        
         # Create a vertical bar chart with the item sizes on the x-axis and position in the bin on the y-axis
         axes[ind].set_title(f'{titles[ind]} , T={t[ind]}s', fontsize=12, weight='bold')
         for i in range(len(bins)):

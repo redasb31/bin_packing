@@ -17,15 +17,15 @@ def dynamic_branch_and_bound(items, best_solution,initial_capacity):
         if evaluate(bins)>=evaluate(best_solution):
             continue
 
-        if (state_hash(items, bins)) in visited:
-            continue
-        visited.append(state_hash((items),bins) )
+       
 
         if (len(items)==0):
             if (evaluate(bins)<evaluate(best_solution)) :
                 best_solution=bins
             continue
-
+        if (state_hash(items, bins)) in visited:
+            continue
+        visited.append(state_hash((items),bins) )
         item=items[0]
 
         new_bins = bins.copy()
@@ -53,6 +53,7 @@ def dynamic_branch_and_bound(items, best_solution,initial_capacity):
 
 
 def stack_branch_and_bound(items, best_solution,initial_capacity):
+    
     stack = [(items,[])]
     while(len(stack)>0):
 
@@ -90,6 +91,7 @@ def stack_branch_and_bound(items, best_solution,initial_capacity):
                     new_items.remove(item)
                     stack.append((new_items,new_bins))
     return best_solution
+
 
 def recursive_branch_and_bound(items, bins, best_solution):
     if len(items) == 0:
@@ -129,6 +131,82 @@ def first_fit(items,initial_capacity):
             if bin.capacity >= item.size:
                 bin.add_item(item)
                 break
+        else:
+            bin = Bin(initial_capacity)
+            bin.add_item(item)
+            bins.append(bin)
+    return bins
+
+
+def worst_fit(items,initial_capacity):
+    new_items=items.copy()
+    new_items.sort()
+    new_items=new_items[::-1]
+    bins = []
+    for item in new_items:
+        worst_bin = None
+        for bin in bins:
+            if bin.capacity >= item.size:
+                if worst_bin is None or bin.capacity > worst_bin.capacity:
+                    worst_bin = bin
+        if worst_bin is not None:
+            worst_bin.add_item(item)
+        else:
+            bin = Bin(initial_capacity)
+            bin.add_item(item)
+            bins.append(bin)
+    return bins
+
+
+def last_fit(items,initial_capacity):
+    new_items=items.copy()
+    new_items.sort()
+    new_items=new_items[::-1]
+    bins = []
+    for item in new_items:
+        last_bin = None
+        for bin in bins:
+            if bin.capacity >= item.size:
+                last_bin = bin
+        if last_bin is not None:
+            last_bin.add_item(item)
+        else:
+            bin = Bin(initial_capacity)
+            bin.add_item(item)
+            bins.append(bin)
+    return bins
+
+
+def next_fit(items,initial_capacity):
+    new_items=items.copy()
+    new_items.sort()
+    new_items=new_items[::-1]
+    bins = []
+    bin = Bin(initial_capacity)
+    for item in new_items:
+        if bin.capacity >= item.size:
+            bin.add_item(item)
+        else:
+            bins.append(bin)
+            bin = Bin(initial_capacity)
+            bin.add_item(item)
+    bins.append(bin)
+    return bins
+
+
+def best_fit(items,initial_capacity):
+    new_items=items.copy()
+    new_items.sort()
+    new_items=new_items[::-1]
+    bins = []
+    for item in new_items:
+        best_bin = None
+        for bin in bins:
+            if bin.capacity >= item.size:
+                if best_bin is None or bin.capacity < best_bin.capacity:
+                    best_bin = bin
+        if best_bin is not None:
+            best_bin.add_item(item)
         else:
             bin = Bin(initial_capacity)
             bin.add_item(item)
