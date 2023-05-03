@@ -1,6 +1,6 @@
 from lib.utils import state_hash
 from lib.classes import Bin, Item
-
+import random, math
 
 def evaluate(bins):
     return len(bins)
@@ -125,11 +125,10 @@ def recursive_branch_and_bound(items, bins, best_solution):
     return best_solution
 
 def first_fit(items,initial_capacity):
-    new_items=items.copy()
-    new_items.sort()
-    new_items=new_items[::-1]
+    # items = sorted(items)
+    items=items[::-1]
     bins = []
-    for item in new_items:
+    for item in items:
         for bin in bins:
             if bin.capacity >= item.size:
                 bin.add_item(item)
@@ -142,11 +141,9 @@ def first_fit(items,initial_capacity):
 
 
 def worst_fit(items,initial_capacity):
-    new_items=items.copy()
-    new_items.sort()
-    new_items=new_items[::-1]
+    # items=items[::-1]
     bins = []
-    for item in new_items:
+    for item in items:
         worst_bin = None
         for bin in bins:
             if bin.capacity >= item.size:
@@ -162,11 +159,9 @@ def worst_fit(items,initial_capacity):
 
 
 def last_fit(items,initial_capacity):
-    new_items=items.copy()
-    new_items.sort()
-    new_items=new_items[::-1]
+    items=items[::-1]
     bins = []
-    for item in new_items:
+    for item in items:
         last_bin = None
         for bin in bins:
             if bin.capacity >= item.size:
@@ -181,12 +176,10 @@ def last_fit(items,initial_capacity):
 
 
 def next_fit(items,initial_capacity):
-    new_items=items.copy()
-    new_items.sort()
-    new_items=new_items[::-1]
+    items=items[::-1]
     bins = []
     bin = Bin(initial_capacity)
-    for item in new_items:
+    for item in items:
         if bin.capacity >= item.size:
             bin.add_item(item)
         else:
@@ -198,11 +191,9 @@ def next_fit(items,initial_capacity):
 
 
 def best_fit(items,initial_capacity):
-    new_items=items.copy()
-    new_items.sort()
-    new_items=new_items[::-1]
+    items=items[::-1]
     bins = []
-    for item in new_items:
+    for item in items:
         best_bin = None
         for bin in bins:
             if bin.capacity >= item.size:
@@ -215,3 +206,55 @@ def best_fit(items,initial_capacity):
             bin.add_item(item)
             bins.append(bin)
     return bins
+
+
+def generate_neighbor(solution):
+    n_bins = len(solution)
+    bin_idx = random.randint(0,n_bins-1)  # choisir un conteneur au hasard
+    if len(solution[bin_idx]) == 0:
+        solution.pop(bin_idx)
+        return solution  # pas de voisin possible si le conteneur est vide
+    
+    item_idx = random.randint(0,len(solution[bin_idx])-1)  # choisir un objet au hasard dans le conteneur
+    new_bin_idx = random.randint(0,n_bins-1)  # choisir un nouveau conteneur au hasard
+    while new_bin_idx == bin_idx:  # éviter de choisir le même conteneur
+        # print(new_bin_idx, bin_idx)
+        new_bin_idx = random.randint(0,n_bins-1)
+
+    neighbor = solution.copy()
+    item = neighbor[bin_idx].items[item_idx]
+    if neighbor[new_bin_idx].capacity >= item.size:
+        neighbor[bin_idx].remove_item(item)  
+        neighbor[new_bin_idx].add_item(item)  
+    
+    return neighbor
+
+
+#metaheuristic taboo search
+def taboo_search(bins, nb_iterations):
+    best_solution = bins
+    tabu_list = []
+    tabu_list.append(bins)
+    for i in range(nb_iterations):
+        new_bins = bins.copy()
+        # on vérifie que le voisin n'est pas dans la liste tabou
+        for _ in range(10):
+            new_bins = generate_neighbor(new_bins)
+            if new_bins not in tabu_list:
+                break
+        # si on a pas trouvé de voisin non tabou, on prend le premier voisin
+
+        if evaluate(new_bins) < evaluate(bins):
+            bins = new_bins
+            if evaluate(bins) < evaluate(best_solution):
+                best_solution = bins
+        else:
+            # random value between 0 and 1
+
+            if random.random() < math.exp((evaluate(bins) - evaluate(new_bins)) / nb_iterations):
+                bins = new_bins
+        
+        tabu_list.append(bins)
+        
+    return best_solution
+

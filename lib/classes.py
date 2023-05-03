@@ -23,6 +23,9 @@ class Bin(object):
         self.items.remove(item)
         self.capacity += item.size
 
+    def __len__(self):
+        return len(self.items)
+
     def __eq__(self, other):
         if self.capacity != other.capacity:
             return False
