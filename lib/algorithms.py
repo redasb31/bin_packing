@@ -1,4 +1,4 @@
-from lib.utils import state_hash
+from lib.utils import state_hash, plot_1_bin, plot_2_bins
 from lib.classes import Bin, Item
 import random, math
 
@@ -125,7 +125,7 @@ def recursive_branch_and_bound(items, bins, best_solution):
     return best_solution
 
 def first_fit(items,initial_capacity):
-    # items = sorted(items)
+    items = sorted(items)
     items=items[::-1]
     bins = []
     for item in items:
@@ -230,18 +230,16 @@ def generate_neighbor(solution):
     return neighbor
 
 
-#metaheuristic taboo search
-def taboo_search(bins, nb_iterations):
+def taboo_search(bins, nb_iterations, taboo_list_size):
     best_solution = bins
     tabu_list = []
     tabu_list.append(bins)
     for i in range(nb_iterations):
         new_bins = bins.copy()
         # on vérifie que le voisin n'est pas dans la liste tabou
-        for _ in range(10):
-            new_bins = generate_neighbor(new_bins)
-            if new_bins not in tabu_list:
-                break
+        new_bins = generate_neighbor(new_bins)
+        if new_bins in tabu_list:
+                continue
         # si on a pas trouvé de voisin non tabou, on prend le premier voisin
 
         if evaluate(new_bins) < evaluate(bins):
@@ -254,14 +252,14 @@ def taboo_search(bins, nb_iterations):
             if random.random() < math.exp((evaluate(bins) - evaluate(new_bins)) / nb_iterations):
                 bins = new_bins
         
+        tabu_list=tabu_list[:9]
         tabu_list.append(bins)
         
     return best_solution
 
 def dispersed_genetic_algorithm(
         items, bin_capacity, num_subspaces, population_size, num_generations,
-        crossover_rate, mutation_rate, selection_function, fitness_function,
-        stop_criterion):
+        crossover_rate, mutation_rate):
     """
     Perform bin packing with a dispersed genetic algorithm.
 
@@ -281,18 +279,17 @@ def dispersed_genetic_algorithm(
     Returns:
         tuple: A tuple containing the best fitness score and the corresponding list of bins.
     """
-    population = initialize_population(items, bin_capacity, num_subspaces, population_size)
+    population = initialize_population(items, bin_capacity, population_size)
 
     for generation in range(num_generations):
         # Evaluate fitness of the population
-        fitness_scores = [fitness_function(bins, bin_capacity) for bins in population]
-
+        fitness_scores = [fitness(bins) for bins in population]
         # Find the best individual in the population
         best_index, best_fitness = max(enumerate(fitness_scores), key=lambda x: x[1])
         best_individual = population[best_index]
 
         # Check if we have met the stop criterion
-        if stop_criterion(generation, best_fitness):
+        if best_fitness == 0:
             return best_fitness, best_individual
 
         # Create subspaces
@@ -306,22 +303,48 @@ def dispersed_genetic_algorithm(
             new_population += new_subspace
 
         # Evaluate fitness of the new population
-        fitness_scores = [fitness_function(bins, bin_capacity) for bins in new_population]
-
+        fitness_scores = [fitness(bins) for bins in new_population]
+        # print(fitness_scores);input()
         # Select parents for the next generation
-        parents = [selection_function(new_population, fitness_scores) for _ in range(population_size)]
+        population = [tournament_selection(new_population, fitness_scores) for _ in range(population_size)]
 
-        # Create the next generation by recombination
-        population = recombine(parents)
 
     # Evaluate the final population and return the best individual
-    fitness_scores = [fitness_function(bins, bin_capacity) for bins in population]
+    fitness_scores = [fitness(bins) for bins in population]
     best_index, best_fitness = max(enumerate(fitness_scores), key=lambda x: x[1])
     best_individual = population[best_index]
 
     return best_fitness, best_individual
 
-def random_bin_assignment(items, num_bins):
+def initialize_population(items, bin_capacity, population_size):
+    """
+    Initializes a population of individuals for the dispersed genetic algorithm.
+
+    Args:
+        items (list): List of Item objects to be packed.
+        bin_capacity (int): Capacity of each bin.
+        population_size (int): Size of the population.
+
+    Returns:
+        list: List of individuals (bins).
+    """
+    population = []
+    for individual in range(population_size):
+        bins = []
+        for _ in range(100):
+            bin_obj = Bin(bin_capacity)
+            bins.append(bin_obj)
+        
+        # Randomly assign items to bins
+        random_bin_assignment(items, bins)
+        
+        # plot_1_bin(bins, 0, f"Individual {individual}")
+        population.append(bins)
+
+    
+    return population
+
+def random_bin_assignment(items, bins):
     """
     Assigns the given items to bins randomly.
 
@@ -330,15 +353,12 @@ def random_bin_assignment(items, num_bins):
 
     Returns a list of Bin objects representing the bins with packed items.
     """
-    bins = [Bin(capacity=1) for i in range(num_bins)]
     random.shuffle(items)
     for item in items:
         for bin in bins:
             if bin.capacity >= item.size:
                 bin.add_item(item)
                 break
-        else:
-            raise ValueError("No bin has enough capacity to hold item")
     return bins
 
 def fitness(bins):
@@ -351,107 +371,90 @@ def fitness(bins):
     """
     return sum([bin.initial_capacity - bin.capacity for bin in bins])
 
-def crossover(parent1, parent2):
+def crossover(subspace, crossover_rate):
     """
     Implements a crossover operation for the bin packing problem.
 
-    parent1: list of Bin objects representing the bins assigned to items in the first parent
-    parent2: list of Bin objects representing the bins assigned to items in the second parent
+    subspace: list of Individuals (bins) in the subspace
+    crossover_rate: rate at which to perform crossover
 
-    Returns two new offspring created by swapping bins between the parents.
+    Returns a new subspace with crossover applied.
     """
-    # Choose a random bin to swap between the parents
-    bin_index = random.randint(0, len(parent1)-1)
+    new_subspace = []
+    for i in range(len(subspace)):
+        # Choose a random individual to mate with
+        if random.random() < crossover_rate:
+            mate = random.choice(subspace)
+            new_individual = []
+            for j in range(len(subspace[i])):
+                # if a bin is empty, delete it
+                if len(subspace[i][j].items) == 0:
+                    continue
 
-    # Create the first offspring by swapping the bin at the chosen index
-    offspring1 = parent1[:bin_index] + [parent2[bin_index]] + parent1[bin_index+1:]
+                # Choose a random bin to inherit from the mate
+                if random.random() < 0.5:
+                    new_individual.append(subspace[i][j])
+                else:
+                    new_individual.append(mate[j])
+            new_subspace.append(new_individual)
+            # plot_2_bins([mate, new_individual], [0,0], ["the chosen individual", "the new individual"])
 
-    # Create the second offspring by swapping the bin at the chosen index
-    offspring2 = parent2[:bin_index] + [parent1[bin_index]] + parent2[bin_index+1:]
+        else:
+            new_subspace.append(subspace[i])
+        
+    return new_subspace
+    
 
-    return offspring1, offspring2
-
-def mutation(individual, items):
+def mutation(subspace, mutation_rate):
     """
     Implements a mutation operation for the bin packing problem.
 
-    individual: list of Bin objects representing the bins assigned to items in the individual
-    items: list of Item objects to be packed into bins
+    subspace: list of Individuals (bins) in the subspace
+    mutation_rate: rate at which to perform mutation
 
-    Returns a new individual with a randomly chosen item reassigned to a different bin.
+    Returns a new subspace with mutation applied.
     """
-    # Choose a random item to reassign
-    item_index = random.randint(0, len(items)-1)
-    item = items[item_index]
+    new_subspace = []
+    for individual in subspace:
+        # Choose a random individual to mutate
+        if random.random() < mutation_rate:
+            for _ in range(10):
+                # Choose 2 random bins to mutate
+                bin1 = random.choice(individual)
+                bin2 = random.choice(individual)
 
-    # Choose a random bin to reassign the item to
-    bin_index = random.randint(0, len(individual)-1)
-    new_bin = individual[bin_index]
+                # mutate 2 random bins by inverting 2 random items from each bin
+                bin1_items = bin1.items
+                bin2_items = bin2.items
+                if len(bin1_items) > 0 and len(bin2_items) > 0:
+                    item1 = random.choice(bin1_items)
+                    item2 = random.choice(bin2_items)
+                    if item1.size + bin2.capacity - item2.size <= bin2.initial_capacity and item2.size + bin1.capacity - item1.size <= bin1.initial_capacity:
+                        bin1.remove_item(item1)
+                        bin1.add_item(item2)
+                        bin2.remove_item(item2)
+                        bin2.add_item(item1)
+                        break
+            new_subspace.append(individual)
+        else:
+            new_subspace.append(individual)
+    return new_subspace
 
-    # Check if the item fits in the new bin, and if not, try the other bins in random order
-    if item.size > new_bin.capacity:
-        candidate_bins = individual[:bin_index] + individual[bin_index+1:]
-        random.shuffle(candidate_bins)
-        for candidate_bin in candidate_bins:
-            if item.size <= candidate_bin.capacity:
-                new_bin = candidate_bin
-                break
 
-    # Remove the item from its current bin and add it to the new bin
-    for bin in individual:
-        if item in bin.items:
-            bin.remove_item(item)
-            break
-    new_bin.add_item(item)
-
-    return individual
-
-def recombine(parent1, parent2):
-    """Performs crossover between two parents to generate two children"""
-    crossover_point = random.randint(0, len(parent1) - 1)
-    child1 = parent1[:crossover_point] + parent2[crossover_point:]
-    child2 = parent2[:crossover_point] + parent1[crossover_point:]
-    return child1, child2
-
-def tournament_selection(population, tournament_size):
+def tournament_selection(population, fitness_scores):
     """
-    Implements a tournament selection operation for the bin packing problem.
-
-    population: list of individuals to select from
-    tournament_size: size of the tournament to be held
-
-    Returns the winning individual selected by the tournament.
-    """
-    tournament = random.sample(population, tournament_size)
-    return max(tournament, key=fitness)
-
-
-def initialize_population(items, bin_capacity, num_subspaces, population_size):
-    """
-    Initializes a population of individuals for the dispersed genetic algorithm.
+    Implements tournament selection for the genetic algorithm.
 
     Args:
-        items (list): List of Item objects to be packed.
-        bin_capacity (int): Capacity of each bin.
-        num_subspaces (int): Number of subspaces to create.
-        population_size (int): Size of the population.
+        population (list): List of individuals (bins).
+        fitness_scores (list): List of fitness scores for each individual.
 
     Returns:
-        list: List of individuals (bins).
+        list: List of individuals (bins) selected for the next generation.
     """
-    population = []
-    for _ in range(population_size):
-        bins = []
-        for _ in range(num_subspaces):
-            bin_obj = Bin(bin_capacity)
-            bins.append(bin_obj)
-        
-        # Randomly assign items to bins
-        random_bin_assignment(items, bins)
-        
-        population.append(bins)
-    
-    return population
+    # Return the individual with the highest fitness score
+    return max(population, key=lambda x: fitness_scores[population.index(x)])
+
 
 
 def create_subspaces(population, num_subspaces):
@@ -472,3 +475,4 @@ def create_subspaces(population, num_subspaces):
         subspaces[subspace_index].append(bins)
 
     return subspaces
+

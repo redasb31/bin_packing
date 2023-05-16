@@ -3,8 +3,8 @@ import matplotlib as plt
 import time
 import itertools
 from lib.classes import Bin, Item
-from lib.utils import plot_5_bins, genereate_items,plot_1_bin, plot_2_bins
-from lib.algorithms import first_fit, recursive_branch_and_bound, stack_branch_and_bound, dynamic_branch_and_bound, last_fit, best_fit, worst_fit, next_fit, taboo_search
+from lib.utils import plot_5_bins, genereate_items, plot_1_bin, plot_2_bins
+from lib.algorithms import *
 import argparse
 
 def test_heuristics():
@@ -22,7 +22,7 @@ def test_heuristics():
 
 
     # Plotting results
-    plot_bins(
+    plot_5_bins(
         all_bins,
         times,
         algorithms
@@ -32,11 +32,27 @@ def test_taboo_search():
     bins = first_fit(items,bin_capacity)
 
     t0 = time.time()
-    solution = taboo_search(bins, 2000)
+    solution = taboo_search(bins, 2000, 10)
     t = time.time() - t0
     plot_2_bins([bins, solution], [0,t], ["First Fit", "taboo Search"])
 
+def test_dispersed_search(items, bin_capacity):
+    # first fit
+    first_fit_solution = first_fit(items, bin_capacity)
 
+    # dispersed search
+    num_subspaces = 10
+    population_size = 100
+    num_generations = 200
+    crossover_rate = 0.8
+    mutation_rate = 0.05
+
+    t0 = time.time()
+    solution = dispersed_genetic_algorithm(items, bin_capacity, num_subspaces, population_size, num_generations,
+        crossover_rate, mutation_rate)
+    # print(solution)
+    t = time.time() - t0
+    plot_2_bins([first_fit_solution, solution[1]], [0,t], ["First fit","dispersed search"]) 
 
 if __name__ == "__main__":
 
@@ -64,7 +80,10 @@ if __name__ == "__main__":
     print(f"Generating {nb_items} items with max size = {max_size}, bin capacity = {bin_capacity} .")
 
     # test_heuristics()
-    test_taboo_search()
+    # test_taboo_search()
+    for i in range(50):
+        test_dispersed_search(items, bin_capacity)
+
 
 
     

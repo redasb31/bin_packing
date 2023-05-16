@@ -193,13 +193,7 @@ def plot_2_bins(list_bins,t,titles):
     fig.tight_layout(pad=6.0)
     # Show the plot
     plt.show()
-
-
-
     
-
-    
-
 def state_hash(items,bins):
     set_bins=set(bins)
     s=hex(len(items))[2:]
