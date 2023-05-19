@@ -29,7 +29,7 @@ def test_branch_and_bound(items, bin_capacity):
     bins3 = dynamic_branch_and_bound(items, bins, bin_capacity)
     t3 = round(time.time()- t3, 6)
 
-    plot_1_bin(bins3, t3,  "dynamic Branch and Bound", len(items))
+    plot_1_bin(bins3, t3,  "dynamic Branch and Bound", len(items), f"dynamic Branch and Bound - {len(items)} items")
 
 def test_heuristics():
     algorithms = ["first_fit", "last_fit", "best_fit", "worst_fit", "next_fit"]
@@ -114,9 +114,9 @@ if __name__ == "__main__":
         items.append(Item(int(dataset[i])))
     print(f"Generating {nb_items} items with max size = {max_size}, bin capacity = {bin_capacity} .")
 
-    #test_branch_and_bound(items, bin_capacity)
+    test_branch_and_bound(items, bin_capacity)
     # test_heuristics()
-    test_taboo_search()
+    # test_taboo_search()
     # for i in range(50):
     #     test_dispersed_search(items, bin_capacity)
 

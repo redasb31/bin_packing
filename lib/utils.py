@@ -76,7 +76,7 @@ def plot_5_bins(list_bins,t,titles):
     plt.show()
 
 
-def plot_1_bin(bins,t,title, fig_name):
+def plot_1_bin(bins,t,title, nb_items, fig_name):
     gs = gridspec.GridSpec(1, 1)
 
     fig = pl.figure(figsize=(8,8))
@@ -193,10 +193,10 @@ def plot_2_bins(list_bins,t,titles):
     plt.show()
     
 def state_hash(items,bins): 
-    set_bins=set(bins)
+    set_bins=sorted(bins)
     s=hex(len(items))[2:]
     for bin in set_bins:
-        s=s+hex(bin.capacity)[2:]
+        s=s+hex(bin.capacity)[2:] + " "
     return s
 
 def print_result(items,bins):
