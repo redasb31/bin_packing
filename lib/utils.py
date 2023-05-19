@@ -76,10 +76,10 @@ def plot_5_bins(list_bins,t,titles):
     plt.show()
 
 
-def plot_1_bin(bins,t,title):
+def plot_1_bin(bins,t,title, fig_name):
     gs = gridspec.GridSpec(1, 1)
 
-    fig = pl.figure(figsize=(14,14))
+    fig = pl.figure(figsize=(8,8))
     ax = pl.subplot(gs[0, 0])
 
     initial_capacity=bins[0].initial_capacity
@@ -103,7 +103,7 @@ def plot_1_bin(bins,t,title):
         positions.append(pos)
     
     # Create a vertical bar chart with the item sizes on the x-axis and position in the bin on the y-axis
-    ax.set_title(f'{title} , T={t}s, nb_bins = {len(bins)}', fontsize=12, weight='bold')
+    ax.set_title(f'{title}\n temps pris={t}s\nnombre de bins = {len(bins)}\nnombre de items = {nb_items}', fontsize=12, weight='bold')
     for i in range(len(bins)):
         # shuffles the colors
         k=0
@@ -126,9 +126,7 @@ def plot_1_bin(bins,t,title):
     fig.tight_layout(pad=6.0)
     # Show the plot
     plt.show()
-
-
-
+    fig.savefig(f'./plots/{fig_name}.png')
 
 def plot_2_bins(list_bins,t,titles):
     
@@ -194,7 +192,7 @@ def plot_2_bins(list_bins,t,titles):
     # Show the plot
     plt.show()
     
-def state_hash(items,bins):
+def state_hash(items,bins): 
     set_bins=set(bins)
     s=hex(len(items))[2:]
     for bin in set_bins:

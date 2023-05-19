@@ -54,7 +54,6 @@ def dynamic_branch_and_bound(items, best_solution,initial_capacity):
             
     return best_solution
 
-
 def stack_branch_and_bound(items, best_solution,initial_capacity):
     
     stack = [(items,[])]
@@ -95,7 +94,6 @@ def stack_branch_and_bound(items, best_solution,initial_capacity):
                     stack.append((new_items,new_bins))
     return best_solution
 
-
 def recursive_branch_and_bound(items, bins, best_solution):
     if len(items) == 0:
         if len(bins) < len(best_solution):
@@ -125,8 +123,8 @@ def recursive_branch_and_bound(items, bins, best_solution):
     return best_solution
 
 def first_fit(items,initial_capacity):
-    items = sorted(items)
-    items=items[::-1]
+    # items = sorted(items)
+    # items=items[::-1]
     bins = []
     for item in items:
         for bin in bins:
@@ -138,7 +136,6 @@ def first_fit(items,initial_capacity):
             bin.add_item(item)
             bins.append(bin)
     return bins
-
 
 def worst_fit(items,initial_capacity):
     # items=items[::-1]
@@ -157,7 +154,6 @@ def worst_fit(items,initial_capacity):
             bins.append(bin)
     return bins
 
-
 def last_fit(items,initial_capacity):
     items=items[::-1]
     bins = []
@@ -174,7 +170,6 @@ def last_fit(items,initial_capacity):
             bins.append(bin)
     return bins
 
-
 def next_fit(items,initial_capacity):
     items=items[::-1]
     bins = []
@@ -188,7 +183,6 @@ def next_fit(items,initial_capacity):
             bin.add_item(item)
     bins.append(bin)
     return bins
-
 
 def best_fit(items,initial_capacity):
     items=items[::-1]
@@ -206,7 +200,6 @@ def best_fit(items,initial_capacity):
             bin.add_item(item)
             bins.append(bin)
     return bins
-
 
 def generate_neighbor(solution):
     n_bins = len(solution)
@@ -228,7 +221,6 @@ def generate_neighbor(solution):
         neighbor[new_bin_idx].add_item(item)  
     
     return neighbor
-
 
 def taboo_search(bins, nb_iterations, taboo_list_size):
     best_solution = bins
@@ -252,7 +244,7 @@ def taboo_search(bins, nb_iterations, taboo_list_size):
             if random.random() < math.exp((evaluate(bins) - evaluate(new_bins)) / nb_iterations):
                 bins = new_bins
         
-        tabu_list=tabu_list[:9]
+        tabu_list=tabu_list[:taboo_list_size]
         tabu_list.append(bins)
         
     return best_solution
@@ -404,7 +396,6 @@ def crossover(subspace, crossover_rate):
         
     return new_subspace
     
-
 def mutation(subspace, mutation_rate):
     """
     Implements a mutation operation for the bin packing problem.
@@ -440,7 +431,6 @@ def mutation(subspace, mutation_rate):
             new_subspace.append(individual)
     return new_subspace
 
-
 def tournament_selection(population, fitness_scores):
     """
     Implements tournament selection for the genetic algorithm.
@@ -454,8 +444,6 @@ def tournament_selection(population, fitness_scores):
     """
     # Return the individual with the highest fitness score
     return max(population, key=lambda x: fitness_scores[population.index(x)])
-
-
 
 def create_subspaces(population, num_subspaces):
     """
