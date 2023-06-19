@@ -26,8 +26,7 @@ def dynamic_branch_and_bound(items, best_solution,initial_capacity):
             if (evaluate(bins)<evaluate(best_solution)) :
                 best_solution=bins
             continue
-        if (state_hash(items, bins)) in visited:
-            continue
+
         visited.append(state_hash((items),bins) )
         item=items[0]
 
@@ -40,17 +39,17 @@ def dynamic_branch_and_bound(items, best_solution,initial_capacity):
         stack.append((new_items,new_bins))
 
         for bin in bins:
-                if bin.capacity>=item.size:
-                    new_bins = bins.copy()
-                    new_bins.remove(bin)
-                    new_bin = Bin(bin.initial_capacity)
-                    new_bin.capacity=bin.capacity
-                    new_bin.items = bin.items.copy()
-                    new_bin.add_item(item)
-                    new_bins.append(new_bin)
-                    new_items=items.copy()
-                    new_items.remove(item)
-                    stack.append((new_items,new_bins))
+            if bin.capacity>=item.size:
+                new_bins = bins.copy()
+                new_bins.remove(bin)
+                new_bin = Bin(bin.initial_capacity)
+                new_bin.capacity=bin.capacity
+                new_bin.items = bin.items.copy()
+                new_bin.add_item(item)
+                new_bins.append(new_bin)
+                new_items=items.copy()
+                new_items.remove(item)
+                stack.append((new_items,new_bins))
             
     return best_solution
 
@@ -426,6 +425,7 @@ def mutation(subspace, mutation_rate):
                         bin2.remove_item(item2)
                         bin2.add_item(item1)
                         break
+
             new_subspace.append(individual)
         else:
             new_subspace.append(individual)
@@ -464,3 +464,268 @@ def create_subspaces(population, num_subspaces):
 
     return subspaces
 
+
+def hybrid_algorithm(
+        items, bin_capacity, num_subspaces, population_size, num_generations,
+        crossover_rate, mutation_rate, dragonfly_iterations):
+    """
+    Perform a hybrid algorithm by combining Dispersed Genetic Algorithm with Dragonfly Algorithm.
+
+    Args:
+        items (list): List of Item objects to be packed.
+        bin_capacity (int): Capacity of each bin.
+        num_subspaces (int): Number of subspaces to create.
+        population_size (int): Size of the population.
+        num_generations (int): Number of generations to run the algorithm for.
+        crossover_rate (float): Rate at which to perform crossover in the genetic algorithm phase.
+        mutation_rate (float): Rate at which to perform mutation in the genetic algorithm phase.
+        dragonfly_iterations (int): Number of iterations to run the dragonfly algorithm phase.
+
+    Returns:
+        tuple: A tuple containing the best fitness score and the corresponding list of bins.
+    """
+    population = initialize_population(items, bin_capacity, population_size)
+
+    for generation in range(num_generations):
+        # Evaluate fitness of the population
+        fitness_scores = [fitness(bins) for bins in population]
+        # Find the best individual in the population
+        best_index, best_fitness = max(enumerate(fitness_scores), key=lambda x: x[1])
+        best_individual = population[best_index]
+
+        # Check if we have met the stop criterion
+        if best_fitness == 0:
+            return best_fitness, best_individual
+
+        # Genetic Algorithm phase
+        subspaces = create_subspaces(population, num_subspaces)
+
+        new_population = []
+        for subspace in subspaces:
+            new_subspace = crossover(subspace, crossover_rate)
+            new_subspace = mutation(new_subspace, mutation_rate)
+            new_population += new_subspace
+
+        population = [tournament_selection(new_population, fitness_scores) for _ in range(population_size)]
+
+        # Dragonfly Algorithm phase
+        dragonflies = population.copy()
+
+        for _ in range(dragonfly_iterations):
+            for i in range(population_size):
+                # Update dragonfly's position using Dragonfly Algorithm rules
+                update_position(population, dragonflies[i])
+
+                # Evaluate fitness of the updated position
+                new_fitness = fitness(dragonflies[i])
+                # If the new position improves fitness, update it
+                if new_fitness < fitness_scores[i]:
+                    population[i] = dragonflies[i]
+                    fitness_scores[i] = new_fitness
+
+    # Evaluate the final population and return the best individual
+    fitness_scores = [fitness(bins) for bins in population]
+    best_index, best_fitness = max(enumerate(fitness_scores), key=lambda x: x[1])
+    best_individual = population[best_index]
+
+    return best_fitness, best_individual
+
+
+def update_position(dragonfly, population, calculate_dissimilarity):
+    """
+    Update the position of a dragonfly based on the Dragonfly Algorithm rules.
+
+    Args:
+        dragonfly (list): List representing the position of a dragonfly.
+        population (list): List of all dragonflies in the population.
+        calculate_dissimilarity (function): Function to calculate the dissimilarity between two bin packing solutions.
+    """
+    step_size = 0.1  # Step size for random movement
+    attractiveness_weight = 1.0  # Weight for attractiveness
+    dissimilarity_weight = 1.0  # Weight for dissimilarity
+
+    random_dragonfly = random.choice(population)
+
+    attractiveness = attractiveness_weight / (1.0 + calculate_dissimilarity(dragonfly, random_dragonfly))
+
+    dissimilarity = calculate_dissimilarity(dragonfly, random_dragonfly)
+
+    # Update the position
+    dragonfly[:] = [x + step_size * (attractiveness * (y - x) + dissimilarity_weight * dissimilarity * (random.random() - 0.5))
+                    for x, y in zip(dragonfly, random_dragonfly)]
+
+def calculate_dissimilarity(solution1, solution2):
+    """
+    Calculate the dissimilarity between two bin packing solutions based on their total utilization.
+
+    Args:
+        solution1 (list): First bin packing solution (list of bins).
+        solution2 (list): Second bin packing solution (list of bins).
+
+    Returns:
+        float: Dissimilarity between the two solutions.
+    """
+    total_utilization1 = sum(bin_utilization(bin) for bin in solution1)
+    total_utilization2 = sum(bin_utilization(bin) for bin in solution2)
+
+    dissimilarity = abs(total_utilization1 - total_utilization2)
+
+    return dissimilarity
+
+def bin_utilization(bin):
+    """
+    Calculate the utilization of a bin.
+
+    Args:
+        bin (list): List representing a bin.
+
+    Returns:
+        float: Utilization of the bin.
+    """
+
+    return bin.initial_capacity - bin.capacity
+
+# Greedy Randomized Adaptive Search Procedure
+def GRASP(items, bin_capacity, alpha, max_iterations):
+    """
+    Perform bin packing with a GRASP algorithm.
+
+    Args:
+        items (list): List of Item objects to be packed.
+        bin_capacity (int): Capacity of each bin.
+        alpha (float): Alpha value for GRASP.
+        max_iterations (int): Maximum number of iterations to run the algorithm for.
+
+    Returns:
+        tuple: A tuple containing the best fitness score and the corresponding list of bins.
+    """
+    best_fitness = float('inf')
+    best_solution = None
+
+    for _ in range(max_iterations):
+        # Construct a greedy solution
+        solution = greedy_randomized_construction(items, bin_capacity, alpha)
+
+        # Perform local search
+        solution = local_search(solution, bin_capacity)
+
+        # Update the best solution
+        fitness_score = fitness(solution)
+        if fitness_score < best_fitness:
+            best_fitness = fitness_score
+            best_solution = solution
+
+    return best_fitness, best_solution
+
+# greedy_randomized_construction
+def greedy_randomized_construction(items, bin_capacity, alpha):
+    """
+    Construct a greedy solution using GRASP.
+
+    Args:
+        items (list): List of Item objects to be packed.
+        bin_capacity (int): Capacity of each bin.
+        alpha (float): Alpha value for GRASP.
+
+    Returns:
+        list: List of bins representing the greedy solution.
+    """
+    # Initialize a list of bins
+    bins = []
+    for _ in range(100):
+        bin_obj = Bin(bin_capacity)
+        bins.append(bin_obj)
+
+    # Initialize a list of items
+    items = items.copy()
+
+    # Construct the greedy solution
+    while len(items) > 0:
+        # Construct a restricted candidate list (RCL) of items
+        rcl = construct_rcl(items, bins, alpha)
+
+        # Choose an item from the RCL at random
+        item = random.choice(rcl)
+
+        # Add the item to the bin with the most capacity
+        max_capacity = max(bin.capacity for bin in bins)
+        for bin in bins:
+            if bin.capacity == max_capacity:
+                bin.add_item(item)
+                break
+
+        # Remove the item from the list of items
+        items.remove(item)
+
+    return bins
+
+# construct_rcl
+def construct_rcl(items, bins, alpha):
+    """
+    Construct a restricted candidate list (RCL) of items.
+
+    Args:
+        items (list): List of Item objects to be packed.
+        bins (list): List of bins.
+        alpha (float): Alpha value for GRASP.
+
+    Returns:
+        list: List of items in the RCL.
+    """
+    # Calculate the utilization of each bin
+    utilizations = [bin_utilization(bin) for bin in bins]
+
+    # Calculate the average utilization
+    average_utilization = sum(utilizations) / len(utilizations)
+
+    # Calculate the threshold utilization
+    threshold_utilization = average_utilization + alpha * (max(utilizations) - average_utilization)
+
+    # Construct the RCL
+    rcl = [item for item in items if item.size <= threshold_utilization]
+
+    return rcl
+
+# local_search
+def local_search(solution, bin_capacity):
+    """
+    Perform local search on a solution.
+
+    Args:
+        solution (list): List of bins representing the solution.
+        bin_capacity (int): Capacity of each bin.
+
+    Returns:
+        list: List of bins representing the solution after local search.
+    """
+    # Initialize a list of bins
+    bins = []
+    for _ in range(100):
+        bin_obj = Bin(bin_capacity)
+        bins.append(bin_obj)
+
+    # Initialize a list of items
+    items = []
+    for bin in solution:
+        for item in bin.items:
+            items.append(item)
+
+    # Construct the greedy solution
+    while len(items) > 0:
+        # Construct a restricted candidate list (RCL) of items
+        rcl = construct_rcl(items, bins, 0)
+
+        # Choose an item from the RCL at random
+        item = random.choice(rcl)
+
+        # Add the item to the bin with the most capacity
+        max_capacity = max(bin.capacity for bin in bins)
+        for bin in bins:
+            if bin.capacity == max_capacity:
+                bin.add_item(item)
+                break
+
+        # Remove the item from the list of items
+        items.remove(item)
+
+    return bins

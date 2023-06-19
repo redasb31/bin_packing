@@ -65,23 +65,35 @@ def test_taboo_search():
     plot_1_bin(solution, t, "Taboo Search", f"Taboo Search - {nb_items} items - {nb_iterations} iterations - {taboo_list_size} taboo list size")
 
 def test_dispersed_search(items, bin_capacity):
-    # first fit
-    first_fit_solution = first_fit(items, bin_capacity)
 
-    # dispersed search
-    num_subspaces = 10
-    population_size = 100
-    num_generations = 200
-    crossover_rate = 0.8
-    mutation_rate = 0.05
+    num_subspaces = 20
+    population_size = 200
+    num_generations = 250
+    crossover_rate = 0.7
+    mutation_rate = 0.03
 
     t0 = time.time()
     solution = dispersed_genetic_algorithm(items, bin_capacity, num_subspaces, population_size, num_generations,
         crossover_rate, mutation_rate)
     # print(solution)
-    t = time.time() - t0
-    plot_2_bins([first_fit_solution, solution[1]], [0,t], ["First fit","dispersed search"]) 
+    t = round(time.time() - t0,6)
+    plot_1_bin(solution[1], t, "Dispersed Genetic Algorithm",len(items), f"Dispersed Genetic Algorithm - {nb_items} items - {num_subspaces} subspaces - {population_size} population size - {num_generations} generations - {crossover_rate} crossover rate - {mutation_rate} mutation rate")
 
+def test_hybridation(items, bin_capacity):
+
+    num_subspaces = 20
+    population_size = 200
+    num_generations = 250
+    crossover_rate = 0.7
+    mutation_rate = 0.03
+    dragonfly_iterations = 100
+
+    t0 = time.time()
+    solution = hybrid_algorithm(items, bin_capacity, num_subspaces, population_size, num_generations,
+        crossover_rate, mutation_rate, dragonfly_iterations)
+    # print(solution)
+    t = round(time.time() - t0,6)
+    plot_1_bin(solution[1], t, "Hybrid Algorithm",len(items), f"Hybrid Algorithm - {nb_items} items - {num_subspaces} subspaces - {population_size} population size - {num_generations} generations - {crossover_rate} crossover rate - {mutation_rate} mutation rate - {dragonfly_iterations} dragonfly iterations")
 if __name__ == "__main__":
 
     # command line arguments parser
@@ -114,11 +126,10 @@ if __name__ == "__main__":
         items.append(Item(int(dataset[i])))
     print(f"Generating {nb_items} items with max size = {max_size}, bin capacity = {bin_capacity} .")
 
-    test_branch_and_bound(items, bin_capacity)
+    # test_branch_and_bound(items, bin_capacity)
     # test_heuristics()
     # test_taboo_search()
-    # for i in range(50):
-    #     test_dispersed_search(items, bin_capacity)
+    test_hybridation(items, bin_capacity)
 
 
 

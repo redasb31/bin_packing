@@ -75,7 +75,6 @@ def plot_5_bins(list_bins,t,titles):
     # Show the plot
     plt.show()
 
-
 def plot_1_bin(bins,t,title, nb_items, fig_name):
     gs = gridspec.GridSpec(1, 1)
 
