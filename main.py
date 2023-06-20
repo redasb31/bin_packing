@@ -220,8 +220,8 @@ if __name__ == "__main__":
 
     # fine_tuning(items, bin_capacity)
     # fitnesses_over_population_size_num_generations(items, bin_capacity)
-    # fitnesses_over_grasp_iterations_grasp_alpha(items, bin_capacity)
-    test_hybridation(items, bin_capacity)
+    fitnesses_over_grasp_iterations_grasp_alpha(items, bin_capacity)
+    #test_hybridation(items, bin_capacity)
 
 
 

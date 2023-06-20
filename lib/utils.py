@@ -27,9 +27,9 @@ def plot_heatmap(x, y, z, x_label, y_label, z_label, graph_name):
     ax.set_ylabel(y_label)
     ax.set_title(graph_name)
     # Afficher les valeurs dans les cellules
-    for i in range(len(y)):
-        for j in range(len(x)):
-            ax.text(j+0.5, i+0.5, f'{Z[i, j]:.2f}', ha='center', va='center', color='black')
+    # for i in range(len(y)):
+    #     for j in range(len(x)):
+    #         ax.text(j+0.5, i+0.5, f'{Z[i, j]:.2f}', ha='center', va='center', color='black')
     
     # fig.tight_layout(pad=1.0)
     # Afficher le heatmap

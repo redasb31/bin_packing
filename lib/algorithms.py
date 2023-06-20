@@ -571,12 +571,10 @@ def hybrid_algorithm(
         for subspace in subspaces:
             for _ in range(grasp_iterations):
                 grasp_solution = grasp(subspace, grasp_alpha)
-                # grasp_solution = crossover(grasp_solution, crossover_rate)
-                # grasp_solution = mutation(grasp_solution, mutation_rate)
                 new_population.append(grasp_solution)
                 
 
-        # # Perform crossover and mutation within the new population
+        # Perform crossover and mutation within the new population
         if new_population:
             new_population = crossover(new_population, crossover_rate)
             new_population = mutation(new_population, mutation_rate)
