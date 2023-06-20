@@ -176,16 +176,16 @@ def fitnesses_over_grasp_iterations_grasp_alpha(items, bin_capacity,):
 
 
     assert len(x) *len(y) == len(z)
-    plot_heatmap(x, y, z, "population size", "num generations", "fitness", "fitness over grasp_iterations and grasp_alpha")
+    plot_heatmap(x, y, z, "grasp_iterations", "grasp_alpha", "fitness", "fitness over grasp_iterations and grasp_alpha")
 
 
 if __name__ == "__main__":
 
     # command line arguments parser
     parser = argparse.ArgumentParser()
-    parser.add_argument('--nb-items', type=int, default=14, help='number of items')
-    parser.add_argument('--max-size', type=int, default=6, help='maximum size')
-    parser.add_argument('--bin-capacity', type=int, default=10, help='bin capacity')
+    parser.add_argument('--nb-items', type=int, default=100, help='number of items')
+    parser.add_argument('--max-size', type=int, default=1000, help='maximum size')
+    parser.add_argument('--bin-capacity', type=int, default=1000, help='bin capacity')
     args = parser.parse_args()
 
     nb_items = args.nb_items
