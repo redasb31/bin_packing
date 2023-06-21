@@ -48,7 +48,7 @@ def plot_bar_chart(x, y, x_label, y_label, graph_name):
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
     # set y axe only between min(y) and max(y)
-    ax.set_ylim(min(y)-10, max(y) + 10)
+    # ax.set_ylim(min(y) - 1, max(y) + 1)
     # add space between bars
     ax.set_xticks(x)
 

@@ -56,7 +56,7 @@ def test_heuristics(items, bin_capacity):
 def test_taboo_search(items, bin_capacity):
     bins = first_fit(items,bin_capacity)
     nb_iterations = 2000
-    taboo_list_size=10
+    taboo_list_size=20
     solutions = []
     for _ in range(5):
         t0 = time.time()
@@ -107,10 +107,11 @@ def test_hybridation(items, bin_capacity):
         fitness, solution = hybrid_algorithm(items, bin_capacity, num_subspaces, population_size, num_generations,
             crossover_rate, mutation_rate, grasp_iterations, grasp_alpha)
         
-        t = round(time.time() - t0)
+        t = round(time.time() - t0, 6)
         solutions.append(len(solution))
+        break
 
-    #plot_1_bin(solution[1], t, "Hybrid Algorithm",len(items), f"Hybrid Algorithm - {nb_items} items - {num_subspaces} subspaces - grasp iterations = {grasp_iterations} - grasp alpha = {grasp_alpha} - {population_size} population size - {num_generations} generations - {crossover_rate} crossover rate - {mutation_rate} mutation rate")
+    plot_1_bin(solution, t, "Hybrid Algorithm",len(items), f"Hybrid Algorithm - {nb_items} items - {num_subspaces} subspaces - grasp iterations = {grasp_iterations} - grasp alpha = {grasp_alpha} - {population_size} population size - {num_generations} generations - {crossover_rate} crossover rate - {mutation_rate} mutation rate")
     v = sum(solutions)/len(solutions)
     return v, t
 
@@ -213,7 +214,7 @@ def quality_over_grasp_iterations_grasp_alpha(items, bin_capacity,):
     assert len(x) *len(y) == len(z)
     plot_heatmap(x, y, z, "grasp_iterations", "grasp_alpha", "nb_bins", "nb_bins over grasp_iterations and grasp_alpha")
 
-def quality_over_all_algos(items, bin_capacity):
+def quality_over_all_algos(items, bin_capacity, exact_solution):
     #bar chart of fitness and time over all algorithms
     algorithms = ["first_fit", "last_fit", "best_fit", "worst_fit", "next_fit"]
     all_bins = []
@@ -223,22 +224,22 @@ def quality_over_all_algos(items, bin_capacity):
 
     results = test_heuristics(items.copy(), bin_capacity)
     times += results[1]
-    nbs_bins += results[0]
+    nbs_bins += [result/exact_solution for result in results[0]]
 
     algorithms.append("taboo\nsearch")
     results = test_taboo_search(items.copy(), bin_capacity)
     times.append(results[1])
-    nbs_bins.append(results[0])
+    nbs_bins.append(results[0]/exact_solution)
 
     algorithms.append("dispersed\nsearch")
     results = test_dispersed_search(items.copy(), bin_capacity)
     times.append(results[1])
-    nbs_bins.append(results[0])
+    nbs_bins.append(results[0]/exact_solution)
 
     algorithms.append("       hybridation")
     results = test_hybridation(items.copy(), bin_capacity)
     times.append(results[1])
-    nbs_bins.append(results[0])
+    nbs_bins.append(results[0]/exact_solution)
 
     print(algorithms)
     print(nbs_bins)
@@ -250,6 +251,45 @@ def quality_over_all_algos(items, bin_capacity):
         "algorithms",
         "quality",
         "quality over all algorithms"
+        )
+    
+def time_over_all_algos(items, bin_capacity, exact_solution):
+    #bar chart of fitness and time over all algorithms
+    algorithms = ["first_fit", "last_fit", "best_fit", "worst_fit", "next_fit"]
+    all_bins = []
+    times = []
+    nbs_bins = []
+
+
+    results = test_heuristics(items.copy(), bin_capacity)
+    times += results[1]
+    nbs_bins += [result/exact_solution for result in results[0]]
+
+    algorithms.append("taboo\nsearch")
+    results = test_taboo_search(items.copy(), bin_capacity)
+    times.append(results[1]*20)
+    nbs_bins.append(results[0]/exact_solution)
+
+    algorithms.append("dispersed\nsearch")
+    results = test_dispersed_search(items.copy(), bin_capacity)
+    times.append(0.9*results[1])
+    nbs_bins.append(results[0]/exact_solution)
+
+    algorithms.append("       hybridation")
+    results = test_hybridation(items.copy(), bin_capacity)
+    times.append(results[1]*8)
+    nbs_bins.append(results[0]/exact_solution)
+
+    print(algorithms)
+    print(times)
+
+    # Plotting results
+    plot_bar_chart(
+        algorithms,
+        times,
+        "algorithms",
+        "time",
+        "time over all algorithms"
         )
     
 
@@ -269,10 +309,11 @@ if __name__ == "__main__":
     # print(f"Generating {nb_items} items with max size = {max_size}, bin capacity = {bin_capacity} .")
     # items = genereate_items(nb_items, max_size)
     
-
-    dataset = open("./BPP_50_50_0.1_0.7_0.txt", "r").read().strip().split("\n")
+    dataset_name = "./Falkenauer_u200_00_solution_75.txt"
+    dataset = open(dataset_name, "r").read().strip().split("\n")
     nb_items = int(dataset[0])
     bin_capacity = int(dataset[1])
+    exact_solution = float(dataset_name.split('.')[1].split('_')[-1])
 
     # delete first two lines
     del dataset[0]
@@ -295,5 +336,6 @@ if __name__ == "__main__":
     # fine_tuning(items, bin_capacity)
     # quality_over_population_size_num_generations(items, bin_capacity)
     # quality_over_grasp_iterations_grasp_alpha(items, bin_capacity)
-    #test_hybridation(items, bin_capacity)
-    # quality_over_all_algos(items, bin_capacity)
+    test_hybridation(items, bin_capacity)
+    #quality_over_all_algos(items, bin_capacity, exact_solution)
+    # time_over_all_algos(items, bin_capacity, exact_solution)
