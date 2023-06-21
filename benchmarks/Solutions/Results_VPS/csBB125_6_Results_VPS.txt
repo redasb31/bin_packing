@@ -1,2 +1,0 @@
-Copyright (C) 2013-2015, Filipe Brandao
-Build (method = -2)

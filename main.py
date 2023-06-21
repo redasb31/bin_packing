@@ -117,8 +117,8 @@ def test_hybridation(items, bin_capacity):
 
 def quality_over_population_size_num_generations(items, bin_capacity,):
     if True:
-        population_size_interval = list(range(100, 550, 50))
-        num_generations_interval = list(range(50, 550, 50))
+        population_size_interval = list(range(100, 450, 50))
+        num_generations_interval = list(range(50, 350, 50))
         crossover_rate = 0.8
         mutation_rate = 0.2
         grasp_iterations = 1
@@ -152,7 +152,7 @@ def quality_over_population_size_num_generations(items, bin_capacity,):
         z = nbs_bins
         
         # save fitnesses to file
-        with open("data/fitnesses_over_population_size_num_generations.py", "w") as f:
+        with open("data/nb_bins_over_population_size_num_generations.py", "w") as f:
             f.write(f"x = {str(x)}\n")
             f.write(f"y = {str(y)}\n")
             f.write(f"z = {str(z)}\n")
@@ -161,10 +161,10 @@ def quality_over_population_size_num_generations(items, bin_capacity,):
         # load data from file
         from data.fitnesses_over_population_size_num_generations import x, y, z
     assert len(x) *len(y) == len(z)
-    plot_heatmap(x, y, z, "population size", "num generations", "fitness", "fitness over population size and num generations")
+    plot_heatmap(x, y, z, "population size", "num generations", "nb_bins", "nb_bins over population size and num generations")
 
 def quality_over_grasp_iterations_grasp_alpha(items, bin_capacity,):
-    if True:
+    if False:
         population_size = 200
         num_subspaces = population_size // 10
         num_generations = 200
@@ -208,7 +208,7 @@ def quality_over_grasp_iterations_grasp_alpha(items, bin_capacity,):
 
     else:
         # load data from file
-        from data.fitnesses_over_grasp_iterations_grasp_alpha import x, y, z
+        from data.nb_bins_over_grasp_iterations_grasp_alpha import x, y, z
 
 
     assert len(x) *len(y) == len(z)
@@ -334,8 +334,8 @@ if __name__ == "__main__":
     #     test_hybridation(items, bin_capacity)
 
     # fine_tuning(items, bin_capacity)
-    # quality_over_population_size_num_generations(items, bin_capacity)
+    quality_over_population_size_num_generations(items, bin_capacity)
     # quality_over_grasp_iterations_grasp_alpha(items, bin_capacity)
-    test_hybridation(items, bin_capacity)
+    # test_hybridation(items, bin_capacity)
     #quality_over_all_algos(items, bin_capacity, exact_solution)
     # time_over_all_algos(items, bin_capacity, exact_solution)
