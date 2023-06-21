@@ -31,98 +31,124 @@ def test_branch_and_bound(items, bin_capacity):
 
     plot_1_bin(bins3, t3,  "dynamic Branch and Bound", len(items), f"dynamic Branch and Bound - {len(items)} items")
 
-def test_heuristics():
+def test_heuristics(items, bin_capacity):
     algorithms = ["first_fit", "last_fit", "best_fit", "worst_fit", "next_fit"]
     all_bins = []
     times = []
+    nbs_bins = []
 
     items.sort()
     for algo in algorithms:
-        t0 = time.time()
-        bins = eval(algo)(items, bin_capacity)
-        t = round(time.time() - t0, 6)
+        solutions = []
+        for _ in range(5):
+            t0 = time.time()
+            bins = eval(algo)(items, bin_capacity,bins=[])
+            t = round(time.time() - t0, 6)
+            solutions.append(len(bins))
         times.append(t)
         all_bins.append(bins)
-        plot_1_bin(bins, t, algo, len(items))
+        v = sum(solutions)/len(solutions)
+        nbs_bins.append(v)
+        #plot_1_bin(bins, t, algo, len(items))
 
-
-    # Plotting results
-    # plot_5_bins(
-    #     all_bins,
-    #     times,
-    #     algorithms
-    #     )
+    return nbs_bins, times
     
-def test_taboo_search():
+def test_taboo_search(items, bin_capacity):
     bins = first_fit(items,bin_capacity)
     nb_iterations = 2000
     taboo_list_size=10
-
-    t0 = time.time()
-    solution = taboo_search(bins, nb_iterations, taboo_list_size)
-    t = round(time.time() - t0, 6)
-    
-    plot_1_bin(solution, t, "Taboo Search", f"Taboo Search - {nb_items} items - {nb_iterations} iterations - {taboo_list_size} taboo list size")
+    solutions = []
+    for _ in range(5):
+        t0 = time.time()
+        solution = taboo_search(bins, nb_iterations, taboo_list_size)
+        # print(len(solution))
+        t = round(time.time() - t0, 6)
+        solutions.append(len(solution))
+    v = sum(solutions)/len(solutions)
+    #plot_1_bin(solution, t, "Taboo Search",len(items), f"Taboo Search - {nb_items} items - {nb_iterations} iterations - {taboo_list_size} taboo list size")
+    return v, t
 
 def test_dispersed_search(items, bin_capacity):
 
     num_subspaces = 20
-    population_size = 100
-    num_generations = 250
-    crossover_rate = 0.7
-    mutation_rate = 0.03
+    population_size = 200
+    num_generations = 200
+    crossover_rate = 0.8
+    mutation_rate = 0.02
 
-    t0 = time.time()
-    solution = dispersed_genetic_algorithm(items, bin_capacity, num_subspaces, population_size, num_generations,
-        crossover_rate, mutation_rate)
-    # print(solution)
-    t = round(time.time() - t0,6)
-    plot_1_bin(solution[1], t, "Dispersed Genetic Algorithm",len(items), f"Dispersed Genetic Algorithm - {nb_items} items - {num_subspaces} subspaces - {population_size} population size - {num_generations} generations - {crossover_rate} crossover rate - {mutation_rate} mutation rate")
+    solutions = []
+    for _ in range(5):
+        t0 = time.time()
+        fitness, solution = dispersed_genetic_algorithm(items, bin_capacity, num_subspaces, population_size, num_generations,
+            crossover_rate, mutation_rate)
+        # print(solution)
+        t = round(time.time() - t0,6)
+        solutions.append(len(solution))
+
+    
+    #plot_1_bin(solution[1], t, "Dispersed Genetic Algorithm",len(items), f"Dispersed Genetic Algorithm - {nb_items} items - {num_subspaces} subspaces - {population_size} population size - {num_generations} generations - {crossover_rate} crossover rate - {mutation_rate} mutation rate")
+    v = sum(solutions)/len(solutions)
+    return v, t
 
 def test_hybridation(items, bin_capacity):
 
-    population_size = 500
+    population_size = 200
     num_subspaces = population_size // 10
-    num_generations = 100
+    num_generations = 200
     crossover_rate = 0.8
-    mutation_rate = 0.2
+    mutation_rate = 0.02
     grasp_iterations = 1
     grasp_alpha = 0.2
 
-    t0 = time.time()
-    solution = hybrid_algorithm(items, bin_capacity, num_subspaces, population_size, num_generations,
-        crossover_rate, mutation_rate, grasp_iterations, grasp_alpha)
-    
-    t = round(time.time() - t0)
-    plot_1_bin(solution[1], t, "Hybrid Algorithm",len(items), f"Hybrid Algorithm - {nb_items} items - {num_subspaces} subspaces - grasp iterations = {grasp_iterations} - grasp alpha = {grasp_alpha} - {population_size} population size - {num_generations} generations - {crossover_rate} crossover rate - {mutation_rate} mutation rate")
+    solutions = []
 
-def fitnesses_over_population_size_num_generations(items, bin_capacity,):
-    if False:
-        population_size_interval = list(range(100, 500, 50))
-        num_generations_interval = list(range(50, 500, 50))
+    for _ in range(5):
+        t0 = time.time()
+        fitness, solution = hybrid_algorithm(items, bin_capacity, num_subspaces, population_size, num_generations,
+            crossover_rate, mutation_rate, grasp_iterations, grasp_alpha)
+        
+        t = round(time.time() - t0)
+        solutions.append(len(solution))
+
+    #plot_1_bin(solution[1], t, "Hybrid Algorithm",len(items), f"Hybrid Algorithm - {nb_items} items - {num_subspaces} subspaces - grasp iterations = {grasp_iterations} - grasp alpha = {grasp_alpha} - {population_size} population size - {num_generations} generations - {crossover_rate} crossover rate - {mutation_rate} mutation rate")
+    v = sum(solutions)/len(solutions)
+    return v, t
+
+def quality_over_population_size_num_generations(items, bin_capacity,):
+    if True:
+        population_size_interval = list(range(100, 550, 50))
+        num_generations_interval = list(range(50, 550, 50))
         crossover_rate = 0.8
         mutation_rate = 0.2
         grasp_iterations = 1
-        grasp_alpha = 0.5
+        grasp_alpha = 0.2
 
         # plot fitness change over populations, num_generations, grasp_iterations
-        fitnesses=[]
+        nbs_bins=[]
         for population_size in population_size_interval:
             num_subspaces = population_size // 10
             for num_generations in num_generations_interval:
                 t0 = time.time()
-                fitness, _ = hybrid_algorithm(items, bin_capacity, num_subspaces, population_size, num_generations,
-                    crossover_rate, mutation_rate, grasp_iterations, grasp_alpha)
+                solutions = []
 
-                fitnesses.append(fitness)
+                for _ in range(5):
+
+                    fitness, solution = hybrid_algorithm(items, bin_capacity, num_subspaces, population_size, num_generations,
+                        crossover_rate, mutation_rate, grasp_iterations, grasp_alpha)
+
+                    solutions.append(len(solution))
+
+                moy = sum(solutions)/len(solutions)
+
+                nbs_bins.append(moy)
 
 
                 t = round(time.time() - t0)
-                print(population_size, num_generations, fitness)
+                print(population_size, num_generations, moy)
 
         x = population_size_interval
         y = num_generations_interval
-        z = fitnesses
+        z = nbs_bins
         
         # save fitnesses to file
         with open("data/fitnesses_over_population_size_num_generations.py", "w") as f:
@@ -136,36 +162,45 @@ def fitnesses_over_population_size_num_generations(items, bin_capacity,):
     assert len(x) *len(y) == len(z)
     plot_heatmap(x, y, z, "population size", "num generations", "fitness", "fitness over population size and num generations")
 
-def fitnesses_over_grasp_iterations_grasp_alpha(items, bin_capacity,):
-    if False:
-        population_size = 500
+def quality_over_grasp_iterations_grasp_alpha(items, bin_capacity,):
+    if True:
+        population_size = 200
         num_subspaces = population_size // 10
-        num_generations = 100
+        num_generations = 200
         crossover_rate = 0.8
         mutation_rate = 0.2
-        grasp_iterations_interval = list(range(1, 10, 1))
+        grasp_iterations_interval = list(range(1, 6, 1))
         grasp_alpha_interval = [0.1, 0.3, 0.5, 0.7, 0.9]
 
         # plot fitness change over populations, num_generations, grasp_iterations
-        fitnesses=[]
+        nbs_bins=[]
         for grasp_iterations in grasp_iterations_interval:
             for grasp_alpha in grasp_alpha_interval:
                 t0 = time.time()
-                fitness, _ = hybrid_algorithm(items, bin_capacity, num_subspaces, population_size, num_generations,
-                    crossover_rate, mutation_rate, grasp_iterations, grasp_alpha)
+                solutions = []
 
-                fitnesses.append(fitness)
+                for _ in range(5):
+
+                    fitness, solution = hybrid_algorithm(items, bin_capacity, num_subspaces, population_size, num_generations,
+                        crossover_rate, mutation_rate, grasp_iterations, grasp_alpha)
+
+                    solutions.append(len(solution))
+
+                moy = sum(solutions)/len(solutions)
+
+                nbs_bins.append(moy)
 
 
                 t = round(time.time() - t0)
-                print(population_size, num_generations, fitness)
+                print(grasp_iterations, grasp_alpha, moy)
+
 
         x = grasp_iterations_interval
         y = grasp_alpha_interval
-        z = fitnesses
+        z = nbs_bins
         
         # save fitnesses to file
-        with open("data/fitnesses_over_grasp_iterations_grasp_alpha.py", "w") as f:
+        with open("data/nb_bins_over_grasp_iterations_grasp_alpha.py", "w") as f:
             f.write(f"x = {str(x)}\n")
             f.write(f"y = {str(y)}\n")
             f.write(f"z = {str(z)}\n")
@@ -176,8 +211,47 @@ def fitnesses_over_grasp_iterations_grasp_alpha(items, bin_capacity,):
 
 
     assert len(x) *len(y) == len(z)
-    plot_heatmap(x, y, z, "grasp_iterations", "grasp_alpha", "fitness", "fitness over grasp_iterations and grasp_alpha")
+    plot_heatmap(x, y, z, "grasp_iterations", "grasp_alpha", "nb_bins", "nb_bins over grasp_iterations and grasp_alpha")
 
+def quality_over_all_algos(items, bin_capacity):
+    #bar chart of fitness and time over all algorithms
+    algorithms = ["first_fit", "last_fit", "best_fit", "worst_fit", "next_fit"]
+    all_bins = []
+    times = []
+    nbs_bins = []
+
+
+    results = test_heuristics(items.copy(), bin_capacity)
+    times += results[1]
+    nbs_bins += results[0]
+
+    algorithms.append("taboo\nsearch")
+    results = test_taboo_search(items.copy(), bin_capacity)
+    times.append(results[1])
+    nbs_bins.append(results[0])
+
+    algorithms.append("dispersed\nsearch")
+    results = test_dispersed_search(items.copy(), bin_capacity)
+    times.append(results[1])
+    nbs_bins.append(results[0])
+
+    algorithms.append("       hybridation")
+    results = test_hybridation(items.copy(), bin_capacity)
+    times.append(results[1])
+    nbs_bins.append(results[0])
+
+    print(algorithms)
+    print(nbs_bins)
+
+    # Plotting results
+    plot_bar_chart(
+        algorithms,
+        nbs_bins,
+        "algorithms",
+        "quality",
+        "quality over all algorithms"
+        )
+    
 
 if __name__ == "__main__":
 
@@ -213,23 +287,13 @@ if __name__ == "__main__":
 
     # test_branch_and_bound(items, bin_capacity)
     # test_heuristics()
-    # test_taboo_search()
+    #test_taboo_search()
     
     # for i in range(50):
     #     test_hybridation(items, bin_capacity)
 
     # fine_tuning(items, bin_capacity)
-    # fitnesses_over_population_size_num_generations(items, bin_capacity)
-    fitnesses_over_grasp_iterations_grasp_alpha(items, bin_capacity)
+    # quality_over_population_size_num_generations(items, bin_capacity)
+    # quality_over_grasp_iterations_grasp_alpha(items, bin_capacity)
     #test_hybridation(items, bin_capacity)
-
-
-
-    
-
-
-
-
-
-
-            
+    # quality_over_all_algos(items, bin_capacity)

@@ -121,10 +121,9 @@ def recursive_branch_and_bound(items, bins, best_solution):
 
     return best_solution
 
-def first_fit(items,initial_capacity):
+def first_fit(items,initial_capacity,bins=[]):
     # items = sorted(items)
     # items=items[::-1]
-    bins = []
     for item in items:
         for bin in bins:
             if bin.capacity >= item.size:
@@ -136,9 +135,8 @@ def first_fit(items,initial_capacity):
             bins.append(bin)
     return bins
 
-def worst_fit(items,initial_capacity):
+def worst_fit(items,initial_capacity,bins=[]):
     # items=items[::-1]
-    bins = []
     for item in items:
         worst_bin = None
         for bin in bins:
@@ -153,9 +151,8 @@ def worst_fit(items,initial_capacity):
             bins.append(bin)
     return bins
 
-def last_fit(items,initial_capacity):
+def last_fit(items,initial_capacity,bins=[]):
     items=items[::-1]
-    bins = []
     for item in items:
         last_bin = None
         for bin in bins:
@@ -169,9 +166,8 @@ def last_fit(items,initial_capacity):
             bins.append(bin)
     return bins
 
-def next_fit(items,initial_capacity):
+def next_fit(items,initial_capacity,bins=[]):
     items=items[::-1]
-    bins = []
     bin = Bin(initial_capacity)
     for item in items:
         if bin.capacity >= item.size:
@@ -183,9 +179,8 @@ def next_fit(items,initial_capacity):
     bins.append(bin)
     return bins
 
-def best_fit(items,initial_capacity):
+def best_fit(items,initial_capacity,bins=[]):
     items=items[::-1]
-    bins = []
     for item in items:
         best_bin = None
         for bin in bins:
@@ -279,9 +274,6 @@ def dispersed_genetic_algorithm(
         best_index, best_fitness = max(enumerate(fitness_scores), key=lambda x: x[1])
         best_individual = population[best_index]
 
-        # Check if we have met the stop criterion
-        if best_fitness == 0:
-            return best_fitness, best_individual
 
         # Create subspaces
         subspaces = create_subspaces(population, num_subspaces)
@@ -289,15 +281,15 @@ def dispersed_genetic_algorithm(
         # Perform crossover and mutation within each subspace
         new_population = []
         for subspace in subspaces:
-            new_subspace = crossover(subspace, crossover_rate)
-            new_subspace = mutation(new_subspace, mutation_rate)
+            # new_subspace = crossover(subspace, crossover_rate)
+            new_subspace = mutation(subspace, mutation_rate)
             new_population += new_subspace
 
         # Evaluate fitness of the new population
         fitness_scores = [fitness(bins) for bins in new_population]
         # print(fitness_scores);input()
         # Select parents for the next generation
-        population = [tournament_selection(new_population, fitness_scores) for _ in range(population_size)]
+        population = elitist_selection(new_population, fitness_scores, population_size)
 
 
     # Evaluate the final population and return the best individual
@@ -410,44 +402,58 @@ def mutation(subspace, mutation_rate):
     """
     new_subspace = []
     for individual in subspace:
-        # Choose a random individual to mutate
-        if random.random() < mutation_rate:
-            for _ in range(10):
+        if individual:
+            for bin in individual:
+                if len(bin.items) == 0:
+                    individual.remove(bin)
+            # Choose a random individual to mutate
+            if random.random() < mutation_rate:
+
                 # Choose 2 random bins to mutate
                 bin1 = random.choice(individual)
                 bin2 = random.choice(individual)
-
-                # mutate 2 random bins by inverting 2 random items from each bin
-                bin1_items = bin1.items
-                bin2_items = bin2.items
-                if len(bin1_items) > 0 and len(bin2_items) > 0:
-                    item1 = random.choice(bin1_items)
-                    item2 = random.choice(bin2_items)
-                    if item1.size + bin2.capacity - item2.size <= bin2.initial_capacity and item2.size + bin1.capacity - item1.size <= bin1.initial_capacity:
-                        bin1.remove_item(item1)
-                        bin1.add_item(item2)
-                        bin2.remove_item(item2)
-                        bin2.add_item(item1)
+                
+                for _ in range(5):
+                    if bin1 == bin2:
+                        bin2 = random.choice(individual)
+                    else:
                         break
 
-            new_subspace.append(individual)
-        else:
-            new_subspace.append(individual)
+                sorted_bins = sorted(individual, key=lambda x: x.capacity)
+                chosen_bins_length = random.randint(1, len(sorted_bins) - 1)
+                chosen_bins = sorted_bins[:chosen_bins_length]
+                ignored_bins = sorted_bins[chosen_bins_length:]
+                
+                # all the items of the ignored bins
+                ignored_items = []
+                for bin in ignored_bins:
+                    for item in bin.items:
+                        ignored_items.append(item)
+
+                individual=best_fit(ignored_items,individual[0].initial_capacity,bins=chosen_bins)
+                
+
+                new_subspace.append(individual)
+            else:
+                new_subspace.append(individual)
     return new_subspace
 
-def tournament_selection(population, fitness_scores):
+def elitist_selection(population, fitness_scores, new_len):
     """
-    Implements tournament selection for the genetic algorithm.
+    Implements elitist selection for the genetic algorithm.
 
     Args:
         population (list): List of individuals (bins).
         fitness_scores (list): List of fitness scores for each individual.
+        new_len (int): Length of the new population.
 
     Returns:
         list: List of individuals (bins) selected for the next generation.
     """
-    # Return the individual with the highest fitness score
-    return max(population, key=lambda x: fitness_scores[population.index(x)])
+    # sort population by fitness_scores
+    sorted_population = [x for _, x in sorted(zip(fitness_scores, population), key=lambda pair: pair[0])]
+
+    return sorted_population[:new_len]
 
 def create_subspaces(population, num_subspaces):
     """
@@ -576,14 +582,15 @@ def hybrid_algorithm(
 
         # Perform crossover and mutation within the new population
         if new_population:
-            new_population = crossover(new_population, crossover_rate)
+            #new_population = crossover(new_population, crossover_rate)
             new_population = mutation(new_population, mutation_rate)
+
 
         # Evaluate fitness of the new population
         fitness_scores = [fitness(bins) for bins in new_population]
 
         # Select parents for the next generation
-        population = [tournament_selection(new_population, fitness_scores) for _ in range(population_size)]
+        population = elitist_selection(new_population, fitness_scores, population_size)
 
     # Evaluate the final population and return the best individual
     fitness_scores = [fitness(bins) for bins in population]

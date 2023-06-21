@@ -36,6 +36,27 @@ def plot_heatmap(x, y, z, x_label, y_label, z_label, graph_name):
     # plt.show()
     plt.savefig(os.path.join("plots", f"{graph_name}.png"))
 
+
+def plot_bar_chart(x, y, x_label, y_label, graph_name):
+    # Créer la figure et l'axe
+    fig, ax = plt.subplots()
+    # increase the space between bars
+    plt.subplots_adjust(left=0.1, bottom=0.3, right=0.9, top=0.9, wspace=0.2, hspace=0.2)
+    # Créer le bar chart
+    ax.bar(x, y, width=0.5, color='blue', edgecolor='white')
+    # Paramètres des axes
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(y_label)
+    # set y axe only between min(y) and max(y)
+    ax.set_ylim(min(y)-10, max(y) + 10)
+    # add space between bars
+    ax.set_xticks(x)
+
+    ax.set_title(graph_name)
+    # Afficher le bar chart
+    # plt.show()
+    plt.savefig(os.path.join("plots", f"{graph_name}.png"))
+
 def plot_5_bins(list_bins,t,titles):
     
     gs = gridspec.GridSpec(3, 5)
